@@ -82,10 +82,12 @@ impl Display for Spin
     fn refresh(&self)
     {
 	print!("\r{} {}", self.title, self.current);
+	flush!();
     }
     fn blank(&self)
     {
 	print!("\r{}  \r", " ".repeat(self.title.chars().count()));
+	flush!();
     }
     fn get_title(&self) -> &str
     {
@@ -98,6 +100,13 @@ impl Display for Spin
 	self.refresh();
     }
     fn update_dimensions(&mut self, _to:usize){}
+
+    fn println(&self, string: &str)
+    {
+	self.blank();
+	println!("{}", string);
+	self.refresh();
+    }
 }
 
 impl Spinner for Spin

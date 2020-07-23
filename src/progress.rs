@@ -49,6 +49,7 @@ impl Bar
     {
 	let mut this = Self::new(width);
 	this.set_title(title.as_ref());
+	this.update();
 	this
     }
     /// Create a new bar with max display width of our terminal
@@ -67,13 +68,15 @@ impl Bar
     /// If `width` is larger than or equal to `max_width`.
     pub fn with_max(width: usize, max_width: usize) -> Self
     {
-	Self {
+	let mut this = Self {
 	    width,
 	    max_width,
 	    progress: 0.0,
 	    buffer: String::with_capacity(width),
 	    title: String::with_capacity(max_width - width),
-	}
+	};
+	this.update();
+	this
     }
 
     /// Fit to terminal's width if possible.
@@ -167,11 +170,13 @@ impl Display for Bar
 	let temp = ensure_eq(format!("{}{}", temp, title), self.max_width);
 	print!("\x1B[0m\x1B[K{}", temp);
 	print!("\n\x1B[1A");
+	flush!();
     }
 
     fn blank(&self)
     {
 	print!("\r{}\r", " ".repeat(self.max_width));
+	flush!();
     }
 
     fn get_title(&self) -> &str
@@ -182,6 +187,7 @@ impl Display for Bar
     fn set_title(&mut self, from: &str)
     {
 	self.title = from.to_string();
+	self.refresh();
     }
 
     fn update_dimensions(&mut self, to: usize)
