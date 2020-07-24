@@ -1,4 +1,4 @@
-///! Progress bar that has a size and also a max size.
+//! Progress bar that has a size and also a max size.
 
 use super::*;
 use std::{

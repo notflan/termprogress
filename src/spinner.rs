@@ -1,4 +1,4 @@
-///! A simple character spinner for bars with no known size
+//! A simple character spinner for bars with no known size
 
 use super::*;
 

@@ -1,4 +1,4 @@
-///! Contains infinite `char` iterators and the type wrapping them, `Wheel`.
+//! Contains infinite `char` iterators and the type wrapping them, `Wheel`.
 
 /// An infinite repeating series of `char`. Used for `spinner::Spin`.
 ///
