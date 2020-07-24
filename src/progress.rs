@@ -1,8 +1,26 @@
+///! Progress bar that has a size and also a max size.
+
 use super::*;
 use std::{
     fmt::Write,
 };
 
+/// A progress bar with a size and optionally title. It implements the `ProgressBar` trait, and is the default progress bar.
+///
+/// The bar has a max size, that is usually derived from the size of your terminal (if it can be detected) or can be set yourself, to stop the title line going over the side.
+/// It also has a configurable width, which is defaulted to 50.
+///
+/// # Usage
+///
+/// To create a new `progress::Bar` with a max size tuned to your terminal (or `Width+20`, if it cannot be detected), and of the default size, `Bar` implements the `Default` trait:
+/// ```rust
+/// let mut bar = Bar::default(); //Creates a bar of width 50 by default.
+/// ```
+///
+/// You can configure sizes and initial title with `new()`, `with_title()`, and `with_max()` functions.
+/// # How it looks
+/// It renders in the terminal like:
+/// `[=========================                         ]: 50% this is a title that may get cut if it reaches max le...`
 #[derive(Debug)]
 pub struct Bar
 {
@@ -13,34 +31,13 @@ pub struct Bar
     title: String,
 }
 
-/*
-#[cfg(test)]
-mod tests
+impl Default for Bar
 {
-    #[test]
-    fn display()
+    fn default() -> Self
     {
-	
-	let mut bar = Bar::new(50);
-	bar.set_title("hello world");
-	bar.progress = 0.455456749849;
-	bar.update();
-	bar.refresh();
-	bar.progress = 0.8;
-	bar.update();
-	bar.refresh();
-	bar.progress = 0.88;
-	bar.update();
-	bar.refresh();
-	bar.set_title("almost AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-	bar.progress = 0.99554;
-	bar.update();
-	bar.refresh();
-
-	println!("\nuhh");
-	panic!("h");
+	Self::new(50)
     }
-}*/
+}
 
 impl Bar
 {

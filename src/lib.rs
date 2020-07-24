@@ -12,11 +12,16 @@ macro_rules! flush {
 mod util;
 mod inter;
 pub use inter::*;
+
 pub mod progress;
 pub mod wheel;
 pub mod spinner;
 
-#[cfg(test)]
-mod tests {
-    
+/// The prelude exposes the traits for spinners and progress bars, and the `spinner::Spin` and `progress::Bar` types for easy access and use.
+pub mod prelude {
+    pub use super::inter::*;
+    pub use super::{
+	spinner::Spin,
+	progress::Bar,
+    };
 }

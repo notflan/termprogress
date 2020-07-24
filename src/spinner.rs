@@ -1,5 +1,21 @@
+///! A simple character spinner for bars with no known size
+
 use super::*;
 
+/// A single character spinner with optional title that can be told to spin whenever it wants. It implements `Spinner` trait, and is the default spinner.
+///
+/// The spinner takes up a line, and renders it's spinner on the end of its title. Calling the `Spinner::bump()` function will cause the character sequence to advance.
+///
+/// # Usage
+/// To use the spinner you can provide it a `Wheel` (see [[wheel]] module), or it implements the `Default` trait, creating a traditional looking spinner (`|/-\`)
+///
+/// ```rust
+/// let mut spin = Spin::default(); //Default new spinner without a title.
+/// ```
+///
+/// # How it looks
+/// It renders in the terminal like:
+/// `This is a spinner /`
 pub struct Spin
 {
     title: String,
@@ -9,7 +25,9 @@ pub struct Spin
 
 impl Spin
 {
-    /// Create a new spinner with title
+    /// Create a new spinner with title and wheel.
+    ///
+    /// To give it the default wheel, you can pass `whl` `Default::default()` to use the default one.
     pub fn with_title(title: &str, whl: wheel::Wheel) -> Self
     {
 	let mut chars = whl.into_iter();
@@ -20,7 +38,12 @@ impl Spin
 	    chars,
 	}
     }
-    /// Create a new blank spinner
+    /// Create a new blank spinner with a wheel
+    ///
+    /// # Example
+    /// ```rust
+    ///  Spin::new(Default::default()); // Create a spinner with the default wheel ('|/-\')
+    /// ```
     pub fn new(whl: wheel::Wheel) -> Self
     {
 	let mut chars = whl.into_iter();
@@ -32,12 +55,12 @@ impl Spin
 	}
     }
 
-    /// Consume the spinner and complete it
+    /// Consume the spinner and complete it. Removes the spin character.
     pub fn complete(self) {
 	println!("{} ", (8u8 as char));
     }
     
-    /// Consume the spinner and complete it with a message
+    /// Consume the spinner and complete it with a message. Removes the spin character and then prints the message.
     pub fn complete_with(self, msg: &str)
     {
 	println!("{}{}", (8u8 as char), msg);
@@ -55,27 +78,6 @@ impl Default for Spin
 	}
     }
 }
-
-/*
-#[cfg(test)]
-mod tests
-{
-    #[test]
-    fn test()
-    {
-	const MAX: usize = 1000000;
-	let mut spin = Spin::with_title("Working maybe...", Default::default());
-	for i in 0..=MAX
-	{
-	    spin.bump();
-	    if i == MAX / 2 {
-		spin.set_title("Working more...");
-	    }
-	}
-	spin.complete_with("OK");
-	println!("Oke");
-    }
-}*/
 
 impl Display for Spin
 {
