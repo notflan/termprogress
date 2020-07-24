@@ -71,6 +71,9 @@ The library comes with traits for progress bars: `[ProgressBar][progress-bar]`, 
 
 The default implementations for these are `Bar` and `Spin`, but you can provide your own implementations too for more customisability
 
+[progress-bar]: ./src/inter.rs
+[spinner]: ./src/inter.rs
+
 ``` rust
 pub fn does_work<P: ProgressBar>(bar: &mut P) 
 {
