@@ -67,7 +67,7 @@ progress.complete_with("Done!");
 ```
 
 ## Traits
-The library comes with traits for progress bars: `[ProgressBar][progress-bar]`, and `[Spinner][spinner]`.
+The library comes with traits for progress bars: [`ProgressBar`][progress-bar], and [`Spinner`][spinner].
 
 The default implementations for these are `Bar` and `Spin`, but you can provide your own implementations too for more customisability
 
