@@ -4,7 +4,7 @@ Simple and customiseable terminal progress bars for Rust.
 ## Features
 
  - Customiseable, has a traits system to allow for passing any type of progress bar around
- - Prevents long titles from overflowing the terminal by using the [terminal_size][terminal-size] crate
+ - Optionally prevents long titles from overflowing the terminal by using the [terminal_size][terminal-size] crate
  - Interfaces for easily manipulating bar
  
 [terminal-size]: https://crates.io/crates/terminal_size
@@ -65,6 +65,11 @@ spinner.bump();
 /// completes
 progress.complete_with("Done!");
 ```
+
+## Default features
+
+By default, the `size` feature is enabled, which requires the dependency [`terminal_size`][terminal-size].
+Without this, `Bar` will not attempt to get the terminal's size to prevent overflows. You can disable it with `default-features=false`.
 
 ## Traits
 The library comes with traits for progress bars: [`ProgressBar`][progress-bar], and [`Spinner`][spinner].

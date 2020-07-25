@@ -50,14 +50,25 @@ impl Bar
 	this
     }
     /// Create a new bar with max display width of our terminal
+    ///
+    /// # Notes
+    /// Without feature `size`, will be the same as `Self::with_max(width, width +20)`
+    #[cfg_attr(not(feature="size"), inline)]
     pub fn new(width: usize) -> Self
     {
-	if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size() {
-	    let tw = usize::from(tw);
-	    Self::with_max(if width < tw {width} else {tw}, tw)
-	} else {
+	#[cfg(feature="size")]
+	return {
+	    if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size() {
+		let tw = usize::from(tw);
+		Self::with_max(if width < tw {width} else {tw}, tw)
+	    } else {
+		Self::with_max(width, width +20)
+	    }
+	};
+	#[cfg(not(feature="size"))]
+	return {
 	    Self::with_max(width, width +20)
-	}
+	};
     }
     /// Create a bar with a max display width
     ///
@@ -77,9 +88,12 @@ impl Bar
     }
 
     /// Fit to terminal's width if possible.
+    ///
+    /// # Notes
+    /// Available with feature `size` only.
     pub fn fit(&mut self) -> bool
     {
-	
+	#[cfg(feature="size")]
 	if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size() {
 	    let tw = usize::from(tw);
 	    self.width = if self.width < tw {self.width} else {tw};
