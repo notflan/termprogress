@@ -44,7 +44,7 @@ pub trait Spinner: Display
 }
 
 /// A trait for creating a progress bar or spinner with a title.
-pub trait WithTitle: Sized + ProgressBar + Display
+pub trait WithTitle: Sized + Display
 {
     fn with_title(len: usize, string: impl AsRef<str>) -> Self;
     fn update(&mut self);

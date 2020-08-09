@@ -74,7 +74,9 @@ Without this, `Bar` will not attempt to get the terminal's size to prevent overf
 ## Traits
 The library comes with traits for progress bars: [`ProgressBar`][progress-bar], and [`Spinner`][spinner].
 
-The default implementations for these are `Bar` and `Spin`, but you can provide your own implementations too for more customisability
+The default implementations for these are `Bar` and `Spin`, but you can provide your own implementations too for more customisability.
+
+There is also `Silent`, which implements both `ProgressBar` and `Spinner`, and does nothing, to allow for easily turning off or on progress displays depending on config.
 
 [progress-bar]: ./src/inter.rs
 [spinner]: ./src/inter.rs
@@ -90,8 +92,14 @@ pub fn does_work<P: ProgressBar>(bar: &mut P)
 
 does_work(&mut Bar::default());
 does_work(&mut MyBar::new());
+
+if NOPROGRESS {
+	does_wotk(&mut Silent)
+} else {
+	does_work(&mut Bar::default())
+}
 ```
 
-## License
+# License
 GPL'd with love <3
 
