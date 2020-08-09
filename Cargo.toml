@@ -2,7 +2,7 @@
 name = "termprogress"
 description = "A terminal progress bar renderer with status and spinners"
 license = "GPL-3.0-or-later"
-version = "0.b2.4"
+version = "0.2.4"
 authors = ["Avril <flanchan@cumallover.me>"]
 edition = "2018"
 
