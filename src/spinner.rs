@@ -127,12 +127,9 @@ impl WithTitle for Spin
     {
 	Self::with_title(t.as_ref(), Default::default())
     }
-    fn update(&mut self)
+    #[inline] fn update(&mut self){}
+    #[inline] fn complete(self)
     {
-	Self::update(self)	    
-    }
-    fn complete(self)
-    {
-	Self::complete(self)
+	Spin::complete(self)
     }
 }
