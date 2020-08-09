@@ -125,7 +125,7 @@ impl WithTitle for Spin
 {
     fn with_title(_: usize, t: impl AsRef<str>) -> Self
     {
-	Self::with_title(t, Default::default())
+	Self::with_title(t.as_ref(), Default::default())
     }
     fn update(&mut self)
     {
