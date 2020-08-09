@@ -29,6 +29,8 @@ pub struct Bar
     progress: f64,
     buffer: String,
     title: String,
+    #[cfg(feature="size")]
+    fit_to_term: bool,
 }
 
 impl Default for Bar
@@ -49,6 +51,14 @@ impl Bar
 	this.update();
 	this
     }
+
+    #[inline]
+    fn autofit(&mut self)
+    {
+	#[cfg(feature="size")]
+	self.fit();
+    }
+    
     /// Create a new bar with max display width of our terminal
     ///
     /// # Notes
@@ -60,9 +70,13 @@ impl Bar
 	return {
 	    if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size() {
 		let tw = usize::from(tw);
-		Self::with_max(if width < tw {width} else {tw}, tw)
+		let mut o = Self::with_max(if width < tw {width} else {tw}, tw);
+		o.fit_to_term = true;
+		o
 	    } else {
-		Self::with_max(width, width +20)
+		let mut o = Self::with_max(width, width +20);
+		o.fit_to_term = true;
+		o
 	    }
 	};
 	#[cfg(not(feature="size"))]
@@ -82,6 +96,7 @@ impl Bar
 	    progress: 0.0,
 	    buffer: String::with_capacity(width),
 	    title: String::with_capacity(max_width - width),
+	    fit_to_term: false,
 	};
 	this.update();
 	this
@@ -101,6 +116,19 @@ impl Bar
 	    return true;
 	}
 	false
+    }
+
+    #[inline] fn widths(&self) -> (usize, usize)
+    {
+	#[cfg(feature="size")] 
+	if self.fit_to_term {
+	    if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size() {
+		let tw = usize::from(tw);
+		let width = if self.width < tw {self.width} else {tw};
+		return (width, tw);
+	    }
+	};
+	(self.width, self.max_width)
     }
     
     /// Update the buffer.
@@ -175,10 +203,11 @@ impl Display for Bar
 {
     fn refresh(&self)
     {
+	let (_, max_width) = self.widths();
 	let temp = format!("[{}]: {:.2}%", self.buffer, self.progress * 100.00);
-	let title = ensure_lower(format!(" {}", self.title), self.max_width - temp.chars().count());
+	let title = ensure_lower(format!(" {}", self.title), max_width - temp.chars().count());
 
-	let temp = ensure_eq(format!("{}{}", temp, title), self.max_width);
+	let temp = ensure_eq(format!("{}{}", temp, title), max_width);
 	print!("\x1B[0m\x1B[K{}", temp);
 	print!("\n\x1B[1A");
 	flush!();
@@ -186,7 +215,8 @@ impl Display for Bar
 
     fn blank(&self)
     {
-	print!("\r{}\r", " ".repeat(self.max_width));
+	let (_, max_width) = self.widths();
+	print!("\r{}\r", " ".repeat(max_width));
 	flush!();
     }
 

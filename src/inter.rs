@@ -12,6 +12,13 @@ pub trait Display
 	println!("{}", string);
 	self.refresh();
     }
+    /// Blank then print a line std stderr, and redisplay.
+    fn eprintln(&self, string: &str)
+    {
+	self.blank();
+	eprintln!("{}", string);
+	self.refresh();
+    }
 
     /// Get the title for this display
     fn get_title(&self) -> &str;
