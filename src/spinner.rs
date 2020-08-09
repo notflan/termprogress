@@ -119,3 +119,20 @@ impl Spinner for Spin
 	self.refresh();
     }
 }
+
+
+impl WithTitle for Spin
+{
+    fn with_title(_: usize, t: impl AsRef<str>) -> Self
+    {
+	Self::with_title(t, Default::default())
+    }
+    fn update(&mut self)
+    {
+	Self::update(self)	    
+    }
+    fn complete(self)
+    {
+	Self::complete(self)
+    }
+}

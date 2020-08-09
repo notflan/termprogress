@@ -16,6 +16,7 @@ pub use inter::*;
 pub mod progress;
 pub mod wheel;
 pub mod spinner;
+pub mod silent;
 
 /// The prelude exposes the traits for spinners and progress bars, and the `spinner::Spin` and `progress::Bar` types for easy access and use.
 pub mod prelude {
@@ -23,5 +24,6 @@ pub mod prelude {
     pub use super::{
 	spinner::Spin,
 	progress::Bar,
+	silent::Silent,
     };
 }

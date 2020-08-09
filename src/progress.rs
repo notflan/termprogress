@@ -253,3 +253,19 @@ impl ProgressBar for Bar
 	self.refresh();
     }
 }
+
+impl WithTitle for Bar
+{
+    fn with_title(len: usize, string: impl AsRef<str>) -> Self
+    {
+	Self::with_title(len, string)
+    }
+    fn update(&mut self)
+    {
+	self.update();
+    }
+    fn complete(self)
+    {
+	self.complete();
+    }
+}
