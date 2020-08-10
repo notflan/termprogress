@@ -1,3 +1,5 @@
+#![cfg_attr(nightly, feature(never_type))] 
+
 #![allow(dead_code)]
 
 macro_rules! flush {

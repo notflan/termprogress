@@ -51,3 +51,147 @@ pub trait WithTitle: Sized + Display
     fn complete(self);
 }
 
+impl<T> WithTitle for Box<T>
+where T: WithTitle + ?Sized
+{
+    fn with_title(len: usize, string: impl AsRef<str>) -> Self
+    {
+	Box::new(T::with_title(len, string))
+    }
+    fn update(&mut self)
+    {
+	self.as_mut().update()
+    }
+    fn complete(self)
+    {
+	(*self).complete()
+    }
+}
+
+impl<T> Display for Box<T>
+where T: Display + ?Sized
+{
+    #[inline] fn refresh(&self)
+    {
+	self.as_ref().refresh();
+    }
+    #[inline] fn blank(&self)
+    {
+	self.as_ref().blank();
+    }
+    #[inline] fn println(&self, string: &str)
+    {
+	self.as_ref().println(string);
+    }
+    #[inline] fn eprintln(&self, string: &str)
+    {
+	self.as_ref().eprintln(string);
+    }
+    #[inline] fn get_title(&self) -> &str
+    {
+	self.as_ref().get_title()
+    }
+    #[inline] fn set_title(&mut self, from: &str)
+    {
+	self.as_mut().set_title(from);
+    }
+    #[inline] fn update_dimensions(&mut self, to: usize)
+    {
+	self.as_mut().update_dimensions(to);
+    }
+}
+
+
+impl<T> ProgressBar for Box<T>
+where T: ProgressBar + ?Sized
+{
+    #[inline] fn set_progress(&mut self, value: f64)
+    {
+	self.as_mut().set_progress(value)
+    }
+    #[inline] fn get_progress(&self) -> f64
+    {
+	self.as_ref().get_progress()
+    }
+}
+
+impl<T> Spinner for Box<T>
+where T: Spinner + ?Sized
+{
+    #[inline] fn bump(&mut self)
+    {
+	self.as_mut().bump()
+    }
+}
+
+#[cfg(nightly)] mod never
+{
+    use super::*;
+
+    impl Display for !
+    {
+	#[inline] fn refresh(&self)
+	{
+	    
+	}
+	#[inline] fn blank(&self)
+	{
+
+	}
+	#[inline] fn println(&self, _: &str)
+	{
+	    
+	}
+	#[inline] fn eprintln(&self, _: &str)
+	{
+	    
+	}
+	#[inline] fn get_title(&self) -> &str
+	{
+	    *self
+	}
+	#[inline] fn set_title(&mut self, _: &str)
+	{
+	}
+
+	#[inline] fn update_dimensions(&mut self, _: usize)
+	{
+	    
+	}
+    }
+
+    impl ProgressBar for !
+    {
+	
+	#[inline] fn set_progress(&mut self, _: f64)
+	{
+	    
+	}
+	#[inline] fn get_progress(&self) -> f64
+	{
+	    *self
+	}
+    }
+
+    impl Spinner for !
+    {
+	#[inline] fn bump(&mut self){}
+    }
+
+    impl WithTitle for !
+    {
+	#[inline] fn with_title(_: usize, _: impl AsRef<str>) -> Self
+	{
+	    unreachable!()
+	}
+	#[inline] fn update(&mut self)
+	{
+	    
+	}
+	#[inline] fn complete(self)
+	{
+	    
+	}
+    }
+}
+#[cfg(nightly)] pub use never::*;
