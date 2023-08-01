@@ -23,8 +23,9 @@ use std::{
 /// # How it looks
 /// It renders in the terminal like:
 /// `[=========================                         ]: 50% this is a title that may get cut if it reaches max le...`
+
 #[derive(Debug)]
-pub struct Bar/*<T: ?Sized = io::Stdout> //TODO: Implement this after try_new(), WINCH, etc*/
+pub struct Bar<T: ?Sized = io::Stdout> //TODO: Implement this after try_new(), WINCH, etc
 {
     width: usize,
     max_width: usize,
@@ -33,7 +34,7 @@ pub struct Bar/*<T: ?Sized = io::Stdout> //TODO: Implement this after try_new(),
     title: String,
     #[cfg(feature="size")]
     fit_to_term: bool,
-    //output_to: T
+    output: T
 }
 
 /// The default size of the terminal bar when the programmer does not provide her own.
@@ -44,35 +45,41 @@ pub const DEFAULT_SIZE: usize = 50;
 /// Or if `size` is not used.
 pub const DEFAULT_MAX_BORDER_SIZE: usize = 20;
 
-impl/*<T: Default>*/ Default for Bar/*<T>*/
+impl<T: Default> Default for Bar<T>
 {
     #[inline] 
     fn default() -> Self
     {
-	Self::new(DEFAULT_SIZE)
+	Self::new(T::default(), DEFAULT_SIZE)
     }
 }
 
-impl/*<T: io::Write>*/ Bar/*<T>*/
+impl<T> Bar<T>
 {
     /// Create a new bar `width` long with a title.
-    pub fn with_title(width: usize, title: impl AsRef<str>) -> Self
+    pub fn with_title(output: impl Into<T>, width: usize, title: impl AsRef<str>) -> Self
     {
-	let mut this = Self::new(width);
+	let mut this = Self::new(output, width);
 	this.set_title(title.as_ref());
 	this.update();
 	this
+    }
+
+    #[inline] fn add_title(&mut self, title: &str)
+    {
+	self.set_title(title);
+	self.update()
     }
     
     /// Attempt to create a new bar with max display width of our terminal and a title.
     ///
     /// If `stdout` is not a terminal, then `None` is returned.
     #[cfg(feature="size")]
-    pub fn try_new_with_title(width: usize, title: impl AsRef<str>) -> Option<Self>
+    pub fn try_new_with_title(output: impl Into<T>, width: usize, title: impl AsRef<str>) -> Option<Self>
     {
 	let (terminal_size::Width(tw), _) = terminal_size::terminal_size()?;
 	let tw = usize::from(tw);
-	let mut o = Self::with_max(if width < tw {width} else {tw}, tw);
+	let mut o = Self::with_max(output.into(), if width < tw {width} else {tw}, tw);
 	o.set_title(title.as_ref());
 	o.fit_to_term = true;
 	o.update();
@@ -93,24 +100,24 @@ impl/*<T: io::Write>*/ Bar/*<T>*/
     ///
     /// To try to create one that always adheres to `size`, use the `try_new()` family of functions.
     #[cfg_attr(not(feature="size"), inline)]
-    pub fn new(width: usize) -> Self
+    pub fn new(output: impl Into<T>, width: usize) -> Self
     {
 	#[cfg(feature="size")]
 	return {
 	    if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size() {
 		let tw = usize::from(tw);
-		let mut o = Self::with_max(if width < tw {width} else {tw}, tw);
+		let mut o = Self::with_max(output.into(), if width < tw {width} else {tw}, tw);
 		o.fit_to_term = true;
 		o
 	    } else {
-		let mut o = Self::with_max(width, width + DEFAULT_MAX_BORDER_SIZE);
+		let mut o = Self::with_max(output.into(), width, width + DEFAULT_MAX_BORDER_SIZE);
 		o.fit_to_term = true;
 		o
 	    }
 	};
 	#[cfg(not(feature="size"))]
 	return {
-	    Self::with_max(width, width +DEFAULT_MAX_BORDER_SIZE)
+	    Self::with_max(output.into(), width, width +DEFAULT_MAX_BORDER_SIZE)
 	};
     }
 
@@ -118,11 +125,11 @@ impl/*<T: io::Write>*/ Bar/*<T>*/
     ///
     /// If `stdout` is not a terminal, then `None` is returned.
     #[cfg(feature="size")]
-    pub fn try_new(width: usize) -> Option<Self>
+    pub fn try_new(output: impl Into<T>, width: usize) -> Option<Self>
     {
 	let (terminal_size::Width(tw), _) = terminal_size::terminal_size()?;
 	let tw = usize::from(tw);
-	let mut o = Self::with_max(if width < tw {width} else {tw}, tw);
+	let mut o = Self::with_max(output, if width < tw {width} else {tw}, tw);
 	o.fit_to_term = true;
 	Some(o)
     }
@@ -132,16 +139,16 @@ impl/*<T: io::Write>*/ Bar/*<T>*/
     /// If `stdout` is not a terminal, then `None` is returned.
     #[cfg(feature="size")]
     #[inline] 
-    pub fn try_new_default_size() -> Option<Self>
+    pub fn try_new_default_size(to: impl Into<T>) -> Option<Self>
     {
-	Self::try_new(DEFAULT_SIZE)
+	Self::try_new(to, DEFAULT_SIZE)
     }
     
     /// Create a bar with a max display width
     ///
     /// # Panics
     /// If `width` is larger than or equal to `max_width`.
-    pub fn with_max(width: usize, max_width: usize) -> Self
+    pub fn with_max(output: T, width: usize, max_width: usize) -> Self
     {
 	let mut this = Self {
 	    width,
@@ -151,11 +158,15 @@ impl/*<T: io::Write>*/ Bar/*<T>*/
 	    title: String::with_capacity(max_width - width),
 	    #[cfg(feature="size")] 
 	    fit_to_term: false,
-	    /*output_to: io::stdout(),*/
+	    output
 	};
 	this.update();
 	this
     }
+
+}
+
+impl<T: ?Sized> Bar<T> {
 
     /// Fit to terminal's width if possible.
     ///
@@ -254,7 +265,7 @@ fn ensure_lower(input: String, to: usize) -> String
     }
 }
 
-impl Display for Bar
+impl<T: ?Sized + io::Write> Display for Bar<T>
 {
     fn refresh(&self)
     {
@@ -293,7 +304,7 @@ impl Display for Bar
     }
 }
 
-impl ProgressBar for Bar
+impl<T: ?Sized + io::Write> ProgressBar for Bar<T>
 {
     fn get_progress(&self) -> f64
     {
@@ -309,11 +320,11 @@ impl ProgressBar for Bar
     }
 }
 
-impl WithTitle for Bar
+impl<T: io::Write> WithTitle for Bar<T>
 {
-    fn with_title(len: usize, string: impl AsRef<str>) -> Self
+    fn add_title(&mut self, string: impl AsRef<str>)
     {
-	Self::with_title(len, string)
+	(*self).add_title(string.as_ref())
     }
     fn update(&mut self)
     {
@@ -324,3 +335,25 @@ impl WithTitle for Bar
 	self.complete();
     }
 }
+
+const _:() = {
+    const fn declval<T>() -> Bar<T> {
+	unreachable!()
+    }
+    fn take_title(_: &(impl WithTitle + ?Sized)) {}
+    fn take_progress(_: &(impl ProgressBar + ?Sized)) {}
+    fn take_display(_: &(impl Display + ?Sized)) {}
+    fn test()
+    {
+	#[macro_export] macro_rules! assert_is_bar {
+	    ($ty:path) => {
+		take_title(&declval::<$ty>());
+		take_progress(&declval::<$ty>());
+		take_display(&declval::<$ty>());
+	    }
+	}
+
+	assert_is_bar!(io::Stdout);
+	assert_is_bar!(std::fs::File);
+    }
+};

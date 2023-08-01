@@ -46,7 +46,17 @@ pub trait Spinner: Display
 /// A trait for creating a progress bar or spinner with a title.
 pub trait WithTitle: Sized + Display
 {
-    fn with_title(len: usize, string: impl AsRef<str>) -> Self;
+    /// Add a title to this indicator.
+    #[inline] 
+    fn with_title(mut self, string: impl AsRef<str>) -> Self
+    {
+	self.add_title(string);
+	self
+    }
+    
+    /// Add a title to this indicator.
+    fn add_title(&mut self, string: impl AsRef<str>);
+    
     fn update(&mut self);
     fn complete(self);
 }
@@ -54,9 +64,13 @@ pub trait WithTitle: Sized + Display
 impl<T> WithTitle for Box<T>
 where T: WithTitle + ?Sized
 {
-    fn with_title(len: usize, string: impl AsRef<str>) -> Self
+    /*fn with_title(len: usize, string: impl AsRef<str>) -> Self
     {
-	Box::new(T::with_title(len, string))
+    Box::new(T::with_title(len, string))
+}*/
+    
+    fn add_title(&mut self, string: impl AsRef<str>) {
+	(*self).add_title(string.as_ref())
     }
     fn update(&mut self)
     {
@@ -180,9 +194,13 @@ where T: Spinner + ?Sized
 
     impl WithTitle for !
     {
-	#[inline] fn with_title(_: usize, _: impl AsRef<str>) -> Self
+	#[inline] fn with_title(mut self, _: impl AsRef<str>) -> Self
 	{
 	    unreachable!()
+	}
+	#[inline] fn add_title(&mut self, _: impl AsRef<str>)
+	{
+	    
 	}
 	#[inline] fn update(&mut self)
 	{

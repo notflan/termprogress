@@ -125,9 +125,19 @@ impl Spinner for Spin
 
 impl WithTitle for Spin
 {
-    fn with_title(_: usize, t: impl AsRef<str>) -> Self
+    #[inline] 
+    fn with_title(self, t: impl AsRef<str>) -> Self
     {
-	Self::with_title(t.as_ref(), Default::default())
+	Self {
+	    title: t.as_ref().to_owned(),
+	    ..self
+	}
+    }
+    #[inline] 
+    fn add_title(&mut self, t: impl AsRef<str>)
+    {
+	self.title = t.as_ref().to_owned();
+//	Self::with_title(t.as_ref(), Default::default())
     }
     #[inline] fn update(&mut self){}
     #[inline] fn complete(self)

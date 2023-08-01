@@ -35,7 +35,8 @@ impl Spinner for Silent
 
 impl WithTitle for Silent
 {
-    #[inline] fn with_title(_: usize, _: impl AsRef<str>) -> Self{Self}
+    #[inline] fn with_title(self, _: impl AsRef<str>) -> Self{self}
+    #[inline] fn add_title(&mut self, _: impl AsRef<str>) {}
     #[inline] fn update(&mut self) {}
     #[inline] fn complete(self) {}
 }
@@ -138,16 +139,28 @@ impl<T> Spinner for MaybeSilent<T>
 impl<T> WithTitle for MaybeSilent<T>
     where T: WithTitle
 {
-    fn with_title(len: usize, string: impl AsRef<str>) -> Self
-    {
-	Self::Loud(T::with_title(len, string))
+    #[inline] 
+    fn add_title(&mut self, string: impl AsRef<str>) {
+	if let Self::Loud(this) = self {
+	    this.add_title(string);
+	}
     }
+    #[inline] 
+    fn with_title(self, string: impl AsRef<str>) -> Self
+    {
+	match self {
+	    Self::Loud(l) => Self::Loud(T::with_title(l, string)),
+	    n => n,
+	}
+    }
+    #[inline] 
     fn update(&mut self)
     {
 	if let Self::Loud(this) = self {
 	    this.update()
 	}
     }
+    #[inline] 
     fn complete(self)
     {
 	if let Self::Loud(this) = self {
