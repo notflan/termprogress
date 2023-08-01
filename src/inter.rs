@@ -70,7 +70,7 @@ where T: WithTitle + ?Sized
 }*/
     
     fn add_title(&mut self, string: impl AsRef<str>) {
-	(*self).add_title(string.as_ref())
+	self.as_mut().add_title(string.as_ref())
     }
     fn update(&mut self)
     {
@@ -194,7 +194,7 @@ where T: Spinner + ?Sized
 
     impl WithTitle for !
     {
-	#[inline] fn with_title(mut self, _: impl AsRef<str>) -> Self
+	#[inline] fn with_title(self, _: impl AsRef<str>) -> Self
 	{
 	    unreachable!()
 	}

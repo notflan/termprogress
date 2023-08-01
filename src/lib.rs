@@ -3,15 +3,53 @@
 #![allow(dead_code)]
 
 macro_rules! flush {
-    () => {
+    ($stream:expr) => {
 	{
+	    #![allow(unused_imports)]
 	    use std::io::Write;
-	    let _ = std::io::stdout().flush();
+	    let _ = $stream.flush();
 	}
-    }
+    };
+    () => {
+	    use std::io::Write;
+	    let _ = ::std::io::stdout().flush();
+    };
+    (? $stream:expr) => {
+	{
+	    #[allow(unused_imports)]
+	    use std::io::Write;
+	    $stream.flush()
+	}
+    };
+    (?) => {
+	    use std::io::Write;
+	    ::std::io::stdout().flush()
+    };
 }
 
-#[cfg(feature="size")] 
+/// The default place to write bars to if an output is not user-specified.
+pub(crate) type DefaultOutputDevice = std::io::Stdout;
+/// A function that creates the default output device object for constructing a progress bar.
+///
+/// This must return multiple handles, since multiple bars can exist throughout the program at overlapping lifetimes.
+/// `DefaultOutputDevice` should internally manage this state.
+pub(crate) const CREATE_DEFAULT_OUTPUT_DEVICE_FUNC: fn () -> DefaultOutputDevice = std::io::stdout;
+
+/// Create an object for the default output device.
+#[inline] 
+pub(crate) fn create_default_output_device() -> DefaultOutputDevice
+{
+    CREATE_DEFAULT_OUTPUT_DEVICE_FUNC()
+}
+
+#[cfg(feature="size")]
+#[inline(always)] 
+fn terminal_size_of(f: &(impl AsRawFd + ?Sized)) -> Option<(terminal_size::Width, terminal_size::Height)>
+{
+    terminal_size::terminal_size_using_fd(f.as_raw_fd())
+}
+
+//#[cfg(feature="size")] TODO: How to add `AsRawFd` bound to `Bar` *only* when `size` feature is enabled?
 use std::os::unix::io::*;
 
 mod util;
