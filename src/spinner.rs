@@ -10,6 +10,7 @@ use super::*;
 /// To use the spinner you can provide it a `Wheel` (see [[wheel]] module), or it implements the `Default` trait, creating a traditional looking spinner (`|/-\`)
 ///
 /// ```rust
+/// # use termprogress::prelude::*;
 /// let mut spin = Spin::default(); //Default new spinner without a title.
 /// ```
 ///
@@ -42,6 +43,7 @@ impl Spin
     ///
     /// # Example
     /// ```rust
+    /// # use termprogress::prelude::*;
     ///  Spin::new(Default::default()); // Create a spinner with the default wheel ('|/-\')
     /// ```
     pub fn new(whl: wheel::Wheel) -> Self

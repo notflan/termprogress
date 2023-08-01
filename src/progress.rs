@@ -14,6 +14,7 @@ use std::{
 ///
 /// To create a new `progress::Bar` with a max size tuned to your terminal (or `Width+20`, if it cannot be detected), and of the default size, `Bar` implements the `Default` trait:
 /// ```rust
+/// # use termprogress::prelude::*;
 /// let mut bar = Bar::default(); //Creates a bar of width 50 by default.
 /// ```
 ///
@@ -96,7 +97,9 @@ impl Bar
 	    progress: 0.0,
 	    buffer: String::with_capacity(width),
 	    title: String::with_capacity(max_width - width),
+	    #[cfg(feature="size")] 
 	    fit_to_term: false,
+	    /*output_to: io::stdout(),*/
 	};
 	this.update();
 	this
