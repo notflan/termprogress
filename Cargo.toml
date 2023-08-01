@@ -11,7 +11,11 @@ edition = "2018"
 [features]
 default = ["size"]
 
+# Use terminal size when drawing bars.
 size = ["terminal_size"]
+
+# React to `SIGWINCH` when `stdout` is a terminal (linux only.)
+reactive = []
 
 [dependencies]
 terminal_size = {version = "0.1", optional = true}

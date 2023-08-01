@@ -1,8 +1,9 @@
-//! Progress bar that has a size and also a max size.
+///! Progress bar that has a size and also a max size.
 
 use super::*;
 use std::{
     fmt::Write,
+    io,
 };
 
 /// A progress bar with a size and optionally title. It implements the `ProgressBar` trait, and is the default progress bar.
@@ -23,7 +24,7 @@ use std::{
 /// It renders in the terminal like:
 /// `[=========================                         ]: 50% this is a title that may get cut if it reaches max le...`
 #[derive(Debug)]
-pub struct Bar
+pub struct Bar/*<T: ?Sized = io::Stdout> //TODO: Implement this after try_new(), WINCH, etc*/
 {
     width: usize,
     max_width: usize,
@@ -32,17 +33,27 @@ pub struct Bar
     title: String,
     #[cfg(feature="size")]
     fit_to_term: bool,
+    //output_to: T
 }
 
-impl Default for Bar
+/// The default size of the terminal bar when the programmer does not provide her own.
+/// Or if `size` is not used.
+pub const DEFAULT_SIZE: usize = 50;
+
+/// The default size of the max render bar when the programmer does not provide her own.
+/// Or if `size` is not used.
+pub const DEFAULT_MAX_BORDER_SIZE: usize = 20;
+
+impl/*<T: Default>*/ Default for Bar/*<T>*/
 {
+    #[inline] 
     fn default() -> Self
     {
-	Self::new(50)
+	Self::new(DEFAULT_SIZE)
     }
 }
 
-impl Bar
+impl/*<T: io::Write>*/ Bar/*<T>*/
 {
     /// Create a new bar `width` long with a title.
     pub fn with_title(width: usize, title: impl AsRef<str>) -> Self
@@ -51,6 +62,21 @@ impl Bar
 	this.set_title(title.as_ref());
 	this.update();
 	this
+    }
+    
+    /// Attempt to create a new bar with max display width of our terminal and a title.
+    ///
+    /// If `stdout` is not a terminal, then `None` is returned.
+    #[cfg(feature="size")]
+    pub fn try_new_with_title(width: usize, title: impl AsRef<str>) -> Option<Self>
+    {
+	let (terminal_size::Width(tw), _) = terminal_size::terminal_size()?;
+	let tw = usize::from(tw);
+	let mut o = Self::with_max(if width < tw {width} else {tw}, tw);
+	o.set_title(title.as_ref());
+	o.fit_to_term = true;
+	o.update();
+	Some(o)
     }
 
     #[inline]
@@ -64,6 +90,8 @@ impl Bar
     ///
     /// # Notes
     /// Without feature `size`, will be the same as `Self::with_max(width, width +20)`
+    ///
+    /// To try to create one that always adheres to `size`, use the `try_new()` family of functions.
     #[cfg_attr(not(feature="size"), inline)]
     pub fn new(width: usize) -> Self
     {
@@ -75,16 +103,40 @@ impl Bar
 		o.fit_to_term = true;
 		o
 	    } else {
-		let mut o = Self::with_max(width, width +20);
+		let mut o = Self::with_max(width, width + DEFAULT_MAX_BORDER_SIZE);
 		o.fit_to_term = true;
 		o
 	    }
 	};
 	#[cfg(not(feature="size"))]
 	return {
-	    Self::with_max(width, width +20)
+	    Self::with_max(width, width +DEFAULT_MAX_BORDER_SIZE)
 	};
     }
+
+    /// Attempt to create a new bar with max display width of our terminal.
+    ///
+    /// If `stdout` is not a terminal, then `None` is returned.
+    #[cfg(feature="size")]
+    pub fn try_new(width: usize) -> Option<Self>
+    {
+	let (terminal_size::Width(tw), _) = terminal_size::terminal_size()?;
+	let tw = usize::from(tw);
+	let mut o = Self::with_max(if width < tw {width} else {tw}, tw);
+	o.fit_to_term = true;
+	Some(o)
+    }
+    
+    /// Attempt to create a new bar with max display width of our terminal.
+    ///
+    /// If `stdout` is not a terminal, then `None` is returned.
+    #[cfg(feature="size")]
+    #[inline] 
+    pub fn try_new_default_size() -> Option<Self>
+    {
+	Self::try_new(DEFAULT_SIZE)
+    }
+    
     /// Create a bar with a max display width
     ///
     /// # Panics
