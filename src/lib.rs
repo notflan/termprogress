@@ -49,6 +49,8 @@ fn terminal_size_of(f: &(impl AsRawFd + ?Sized)) -> Option<(terminal_size::Width
     terminal_size::terminal_size_using_fd(f.as_raw_fd())
 }
 
+use atomic_refcell::AtomicRefCell;
+
 //#[cfg(feature="size")] TODO: How to add `AsRawFd` bound to `Bar` *only* when `size` feature is enabled?
 use std::os::unix::io::*;
 

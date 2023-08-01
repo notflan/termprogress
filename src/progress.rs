@@ -5,8 +5,6 @@ use std::{
     fmt::Write,
     io,
 };
-use atomic_refcell::AtomicRefCell;
-
 /// A progress bar with a size and optionally title. It implements the `ProgressBar` trait, and is the default progress bar.
 ///
 /// The bar has a max size, that is usually derived from the size of your terminal (if it can be detected) or can be set yourself, to stop the title line going over the side.
@@ -140,8 +138,6 @@ impl Bar {
 
 impl<T: io::Write + AsRawFd> Bar<T>
 {
-    
-
     /// Create a new bar `width` long with a title.
     pub fn with_title(output: impl Into<T> + AsRawFd, width: usize, title: impl AsRef<str>) -> Self
     {
@@ -270,7 +266,7 @@ impl<T: ?Sized + io::Write + AsRawFd> Bar<T> {
     pub fn fit(&mut self) -> bool
     {
 	#[cfg(feature="size")] {
-	    if let Some((terminal_size::Width(tw), _)) = self.try_get_size() {
+	    if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size_using_fd(self.output.get_mut().as_raw_fd()) {
 		let tw = usize::from(tw);
 		self.width = if self.width < tw {self.width} else {tw};
 		self.update_dimensions(tw);
@@ -407,13 +403,31 @@ impl<T: ?Sized + io::Write + AsRawFd> Display for Bar<T>
     fn set_title(&mut self, from: &str)
     {
 	self.title = from.to_string();
-	self.refresh();
+
+	let (_, max_width) = self.widths();
+
+	// self.refresh(), with exclusive access. (XXX: Maybe move this to a non-pub `&mut self` helper function)
+	let out = self.output.get_mut();
+	
+	//TODO: What to do about I/O errors?
+	let _ = out.write_all(b"\r")
+	    .and_then(|_| stackalloc::stackalloc(max_width, b' ',|spaces| out.write_all(spaces))) // Write `max_width` spaces (TODO: Is there a better way to do this? With no allocation? With a repeating iterator maybe?)
+	    .and_then(|_| out.write_all(b"\r"))
+	    .and_then(move |_| flush!(? out));
     }
 
     fn update_dimensions(&mut self, to: usize)
     {
 	self.max_width = to;
-	self.refresh();
+	
+	// self.refresh(), with exclusive access. (XXX: Maybe move this to a non-pub `&mut self` helper function)
+	let out = self.output.get_mut();
+	
+	//TODO: What to do about I/O errors?
+	let _ = out.write_all(b"\r")
+	    .and_then(|_| stackalloc::stackalloc(to, b' ',|spaces| out.write_all(spaces))) // Write `max_width` spaces (TODO: Is there a better way to do this? With no allocation? With a repeating iterator maybe?)
+	    .and_then(|_| out.write_all(b"\r"))
+	    .and_then(move |_| flush!(? out));
     }
 }
 
@@ -429,7 +443,17 @@ impl<T: ?Sized + io::Write + AsRawFd> ProgressBar for Bar<T>
 	    self.progress = value;
 	    self.update();
 	}
-	self.refresh();
+	
+	let (_, max_width) = self.widths();
+
+	// self.refresh(), with exclusive access. (XXX: Maybe move this to a non-pub `&mut self` helper function)
+	let out = self.output.get_mut();
+	
+	//TODO: What to do about I/O errors?
+	let _ = out.write_all(b"\r")
+	    .and_then(|_| stackalloc::stackalloc(max_width, b' ',|spaces| out.write_all(spaces))) // Write `max_width` spaces (TODO: Is there a better way to do this? With no allocation? With a repeating iterator maybe?)
+	    .and_then(|_| out.write_all(b"\r"))
+	    .and_then(move |_| flush!(? out));
     }
 }
 
@@ -476,8 +500,8 @@ const _:() = {
 mod test
 {
     use super::*;
-    #[test]
     
+    #[test]
     fn rendering_blanking()
     {
 	let mut bar = {
@@ -497,5 +521,13 @@ mod test
 	bar.set_title("...");
 	bar.blank();
 	bar.complete().unwrap();
+    }
+
+    #[test]
+    fn creating_non_default_fd() {
+	#[cfg(feature="size")] 
+	let Some(_): Option<Bar<std::io::Stderr>> = Bar::try_new(std::io::stderr(), super::DEFAULT_SIZE) else { return };
+	#[cfg(not(feature="size"))]
+	let _: Bar<std::io::Stderr> = Bar::new(std::io::stderr(), super::DEFAULT_SIZE);
     }
 }
