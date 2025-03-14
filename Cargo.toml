@@ -2,27 +2,26 @@
 name = "termprogress"
 description = "A terminal progress bar renderer with status and spinners"
 license = "GPL-3.0-or-later"
-# TODO: After full interface update & correction, bump version to `0.11.0` instead or a revision.
-version = "0.10.1"
+version = "0.11.0"
 authors = ["Avril <flanchan@cumallover.me>"]
-edition = "2018"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["size", "reactive"]
+default = ["size"]
 
 # Use terminal size when drawing bars.
-size = ["terminal_size"]
+size = ["dep:terminal_size"]
 
 # TODO: React to `SIGWINCH` when output stream is a terminal (linux only.)
-reactive = []
+# reactive = []
 
 [dependencies]
 atomic_refcell = "0.1.10"
 stackalloc = "1.2.0"
-terminal_size = {version = "0.1", optional = true}
+terminal_size = {version = "0.4", optional = true}
 
 [build-dependencies]
-rustc_version = "0.2"
+rustc_version = "0.4"
 

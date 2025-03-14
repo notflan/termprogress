@@ -136,10 +136,10 @@ impl Bar {
     }
 }
 
-impl<T: io::Write + AsRawFd> Bar<T>
+impl<T: io::Write + AsFd> Bar<T>
 {
     /// Create a new bar `width` long with a title.
-    pub fn with_title(output: impl Into<T> + AsRawFd, width: usize, title: impl AsRef<str>) -> Self
+    pub fn with_title(output: impl Into<T> + AsFd, width: usize, title: impl AsRef<str>) -> Self
     {
 	let mut this = Self::new(output, width);
 	this.add_title(title.as_ref());
@@ -156,7 +156,7 @@ impl<T: io::Write + AsRawFd> Bar<T>
     ///
     /// If `output` is not a terminal, then `None` is returned.
     #[cfg(feature="size")]
-    pub fn try_new_with_title(output: impl Into<T> + AsRawFd, width: usize, title: impl AsRef<str>) -> Option<Self>
+    pub fn try_new_with_title(output: impl Into<T> + AsFd, width: usize, title: impl AsRef<str>) -> Option<Self>
     {
 	let (terminal_size::Width(tw), _) = terminal_size_of(&output)?;
 	let tw = usize::from(tw);
@@ -181,7 +181,7 @@ impl<T: io::Write + AsRawFd> Bar<T>
     ///
     /// To try to create one that always adheres to `size`, use the `try_new()` family of functions.
     #[cfg_attr(not(feature="size"), inline)]
-    pub fn new(output: impl Into<T> + AsRawFd, width: usize) -> Self
+    pub fn new(output: impl Into<T> + AsFd, width: usize) -> Self
     {
 	#[cfg(feature="size")]
 	return {
@@ -206,7 +206,7 @@ impl<T: io::Write + AsRawFd> Bar<T>
     ///
     /// If `output` is not a terminal, then `None` is returned.
     #[cfg(feature="size")]
-    pub fn try_new(output: impl Into<T> + AsRawFd, width: usize) -> Option<Self>
+    pub fn try_new(output: impl Into<T> + AsFd, width: usize) -> Option<Self>
     {
 	let (terminal_size::Width(tw), _) = terminal_size_of(&output)?;
 	let tw = usize::from(tw);
@@ -220,7 +220,7 @@ impl<T: io::Write + AsRawFd> Bar<T>
     /// If `output` is not a terminal, then `None` is returned.
     #[cfg(feature="size")]
     #[inline] 
-    pub fn try_new_default_size(to: impl Into<T> + AsRawFd) -> Option<Self>
+    pub fn try_new_default_size(to: impl Into<T> + AsFd) -> Option<Self>
     {
 	Self::try_new(to, DEFAULT_SIZE)
     }
@@ -247,13 +247,13 @@ impl<T: io::Write + AsRawFd> Bar<T>
 
 }
 
-impl<T: ?Sized + io::Write + AsRawFd> Bar<T> {
+impl<T: ?Sized + io::Write + AsFd> Bar<T> {
     #[inline(always)]
     #[cfg(feature="size")]
     fn try_get_size(&self) -> Option<(terminal_size::Width, terminal_size::Height)>
     {
 	let b = self.output.try_borrow().ok()?;
-	terminal_size::terminal_size_using_fd(b.as_raw_fd())
+	terminal_size::terminal_size_of::<&T>(&b)
     }
     /// Fit to terminal's width if possible.
     ///
@@ -266,7 +266,7 @@ impl<T: ?Sized + io::Write + AsRawFd> Bar<T> {
     pub fn fit(&mut self) -> bool
     {
 	#[cfg(feature="size")] {
-	    if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size_using_fd(self.output.get_mut().as_raw_fd()) {
+	    if let Some((terminal_size::Width(tw), _)) = terminal_size::terminal_size_of(self.output.get_mut()) {
 		let tw = usize::from(tw);
 		self.width = if self.width < tw {self.width} else {tw};
 		self.update_dimensions(tw);
@@ -359,7 +359,7 @@ fn ensure_lower(input: String, to: usize) -> String
     }
 }
 
-impl<T: ?Sized + io::Write + AsRawFd> Display for Bar<T>
+impl<T: ?Sized + io::Write + AsFd> Display for Bar<T>
 {
     fn refresh(&self)
     {
@@ -431,7 +431,7 @@ impl<T: ?Sized + io::Write + AsRawFd> Display for Bar<T>
     }
 }
 
-impl<T: ?Sized + io::Write + AsRawFd> ProgressBar for Bar<T>
+impl<T: ?Sized + io::Write + AsFd> ProgressBar for Bar<T>
 {
     fn get_progress(&self) -> f64
     {
@@ -457,7 +457,7 @@ impl<T: ?Sized + io::Write + AsRawFd> ProgressBar for Bar<T>
     }
 }
 
-impl<T: io::Write + AsRawFd> WithTitle for Bar<T>
+impl<T: io::Write + AsFd> WithTitle for Bar<T>
 {
     fn add_title(&mut self, string: impl AsRef<str>)
     {
@@ -483,7 +483,7 @@ const _:() = {
     fn take_display(_: &(impl Display + ?Sized)) {}
     fn test()
     {
-	#[macro_export] macro_rules! assert_is_bar {
+	macro_rules! assert_is_bar {
 	    ($ty:path) => {
 		take_title(&declval::<$ty>());
 		take_progress(&declval::<$ty>());

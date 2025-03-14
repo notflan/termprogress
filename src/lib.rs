@@ -47,15 +47,16 @@ pub(crate) fn create_default_output_device() -> DefaultOutputDevice
 
 #[cfg(feature="size")]
 #[inline(always)] 
-fn terminal_size_of(f: &(impl AsRawFd + ?Sized)) -> Option<(terminal_size::Width, terminal_size::Height)>
+fn terminal_size_of(f: &(impl AsFd + ?Sized)) -> Option<(terminal_size::Width, terminal_size::Height)>
 {
-    terminal_size::terminal_size_using_fd(f.as_raw_fd())
+    terminal_size::terminal_size_of(f)
 }
 
 use atomic_refcell::AtomicRefCell;
 
 //#[cfg(feature="size")] TODO: How to add `AsRawFd` bound to `Bar` *only* when `size` feature is enabled?
-use std::os::unix::io::*;
+//use std::os::unix::io::*; // Not currently needed right now, platform-agnostic `AsFd` is used instead.
+use std::os::fd::AsFd;
 
 mod util;
 mod inter;
@@ -79,9 +80,9 @@ pub fn has_terminal_output_default() -> bool
 ///
 /// Requires `size` feature.
 #[cfg(feature="size")] 
-pub fn has_terminal_output(f: &(impl AsRawFd + ?Sized)) -> bool
+pub fn has_terminal_output(f: &(impl AsFd + ?Sized)) -> bool
 {
-    terminal_size::terminal_size_using_fd(f.as_raw_fd()).is_some()
+    terminal_size::terminal_size_of(f).is_some()
 }
 
 /// The prelude exposes the traits for spinners and progress bars, and the `spinner::Spin` and `progress::Bar` types for easy access and use.
