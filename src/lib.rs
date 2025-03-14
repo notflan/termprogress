@@ -2,6 +2,8 @@
 
 #![allow(dead_code)]
 
+//TODO: XXX: Change default output to `stderr`, **NOT** stdout, ffs... Also add allow custom stream output.  Change behaviour that if `not isatty(S)` with `terminal_size` feature enabled an error is returned instead of *guessing* default sizes when it's not (caller can force by `unwrap_or*(50)`.)
+
 macro_rules! flush {
     ($stream:expr) => {
 	{
