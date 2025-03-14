@@ -31,6 +31,7 @@ macro_rules! flush {
 
 /// The default place to write bars to if an output is not user-specified.
 pub(crate) type DefaultOutputDevice = std::io::Stdout;
+
 /// A function that creates the default output device object for constructing a progress bar.
 ///
 /// This must return multiple handles, since multiple bars can exist throughout the program at overlapping lifetimes.
