@@ -138,6 +138,57 @@ where T: Spinner + ?Sized
     }
 }
 
+
+impl Display for std::convert::Infallible
+{
+    #[inline] fn refresh(&self)
+    {
+	
+    }
+    #[inline] fn blank(&self)
+    {
+
+    }
+    #[inline] fn println(&self, _: &str)
+    {
+	
+    }
+    #[inline] fn eprintln(&self, _: &str)
+    {
+	
+    }
+    #[inline] fn get_title(&self) -> &str
+    {
+	match *self {}
+    }
+    #[inline] fn set_title(&mut self, _: &str)
+    {
+    }
+
+    #[inline] fn update_dimensions(&mut self, _: usize)
+    {
+	
+    }
+}
+
+impl ProgressBar for std::convert::Infallible
+{
+    
+    #[inline] fn set_progress(&mut self, _: f64)
+    {
+	
+    }
+    #[inline] fn get_progress(&self) -> f64
+    {
+	match *self {}
+    }
+}
+
+impl Spinner for std::convert::Infallible
+{
+    #[inline] fn bump(&mut self){}
+}
+
 #[cfg(nightly)] mod never
 {
     use super::*;
